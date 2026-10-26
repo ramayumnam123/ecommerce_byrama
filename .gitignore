@@ -1,0 +1,43 @@
+# --- Python / backend ---
+backend/.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local secrets
+backend/.env
+backend/.env.local
+*.env.*
+!*.env.example
+
+# Uploaded media (runtime data)
+backend/uploads/
+
+# Scratch / task-output files at repo root
+_*result*.txt
+_server_*.log
+_server_*.txt
+
+# --- Node / frontend ---
+frontend/node_modules/
+frontend/.next/
+frontend/.vercel/
+frontend/tsconfig.tsbuildinfo
+frontend/coverage/
+
+# Playwright
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/
+
+# Frontend local secrets
+frontend/.env.local
+frontend/.env*.local
+
+# --- General ---
+.DS_Store
+Thumbs.db
+*.log
