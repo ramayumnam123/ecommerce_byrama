@@ -123,8 +123,8 @@ export function SignInForm({ next }: { next?: string }) {
 
       {process.env.NODE_ENV !== "production" ? (
         <p className="rounded-md border border-dashed px-3 py-2 text-center text-[11px] text-muted-foreground">
-          Dev seed: <span className="font-mono">admin@local.dev</span> /{" "}
-          <span className="font-mono">Admin1234</span>
+          Dev seed: <span className="font-mono">admin@rama.dev</span> /{" "}
+          <span className="font-mono">Admin1234!</span>
         </p>
       ) : null}
     </div>

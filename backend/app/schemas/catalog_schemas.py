@@ -56,6 +56,26 @@ class ProductDetail(ProductListItem):
     images: list[ProductImageOut]
 
 
+class ReviewIn(BaseModel):
+    rating: int = Field(ge=1, le=5)
+    title: str | None = Field(None, max_length=140)
+    body: str | None = Field(None, max_length=5000)
+
+
+class MyReviewOut(BaseModel):
+    """A user's own review, with product info for the account page."""
+
+    id: uuid.UUID
+    rating: int
+    title: str | None
+    body: str | None
+    is_verified_purchase: bool
+    created_at: datetime
+    product_id: uuid.UUID
+    product_slug: str
+    product_name: str
+
+
 class ReviewOut(BaseModel):
     id: uuid.UUID
     rating: int

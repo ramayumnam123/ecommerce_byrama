@@ -103,9 +103,11 @@ export async function getReviews(
   page = 1,
   pageSize = 10,
 ): Promise<Page<Review>> {
+  // Reviews are user-generated: serve them per-request so a hard refresh
+  // always shows the latest submissions (docs/07 §3 filtered-pages approach).
   return serverGet<Page<Review>>(
     `/products/${encodeURIComponent(slug)}/reviews?page=${page}&page_size=${pageSize}`,
-    { tags: ["reviews", `product/${slug}`] },
+    { noStore: true, tags: ["reviews", `product/${slug}`] },
   );
 }
 

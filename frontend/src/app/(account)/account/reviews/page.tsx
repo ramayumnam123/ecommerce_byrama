@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { MessageSquareText, Star } from "lucide-react";
 import { buildMetadata } from "@/lib/seo";
-import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/shared/empty-state";
+import { MyReviewsList } from "@/components/account/my-reviews-list";
 
 export const metadata: Metadata = buildMetadata({
   title: "My reviews",
@@ -24,23 +21,7 @@ export default function ReviewsPage() {
         </p>
       </div>
 
-      <EmptyState
-        icon={MessageSquareText}
-        title="No reviews yet"
-        description="Once you've lived with a piece for a while, share what you think on its product page. Reviews appear here for easy reference."
-        className="mt-8"
-        action={
-          <Button asChild>
-            <Link href="/account/orders">
-              <Star /> Review a purchase
-            </Link>
-          </Button>
-        }
-      />
-
-      <p className="mt-4 text-center text-xs text-muted-foreground">
-        Tip: open a delivered order to leave a review from the product page.
-      </p>
+      <MyReviewsList />
     </div>
   );
 }

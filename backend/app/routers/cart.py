@@ -155,7 +155,7 @@ def variant_id_to_uuid(v: str):
     try:
         return uuid_mod.UUID(v)
     except ValueError:
-        raise ValidationAppError("VALIDATION", "Invalid variant id", 400)
+        raise ValidationAppError("VALIDATION", "Invalid variant id", status_code=400)
 
 
 async def _require_cart(db, request: Request, user: User | None, guest_token: str | None):

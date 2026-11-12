@@ -276,7 +276,11 @@ export interface paths {
         /** List Product Reviews */
         get: operations["list_product_reviews_api_products__slug__reviews_get"];
         put?: never;
-        post?: never;
+        /**
+         * Create Product Review
+         * @description Create (201) or update (200) the signed-in user's review for a product.
+         */
+        post: operations["create_product_review_api_products__slug__reviews_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -508,6 +512,26 @@ export interface paths {
         put?: never;
         /** Cancel Order */
         post: operations["cancel_order_api_orders__order_id__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My Reviews
+         * @description The signed-in user's reviews, newest first, with product info.
+         */
+        get: operations["my_reviews_api_users_reviews_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1750,6 +1774,39 @@ export interface components {
             /** Message */
             message: string;
         };
+        /**
+         * MyReviewOut
+         * @description A user's own review, with product info for the account page.
+         */
+        MyReviewOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Rating */
+            rating: number;
+            /** Title */
+            title: string | null;
+            /** Body */
+            body: string | null;
+            /** Is Verified Purchase */
+            is_verified_purchase: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Product Id
+             * Format: uuid
+             */
+            product_id: string;
+            /** Product Slug */
+            product_slug: string;
+            /** Product Name */
+            product_name: string;
+        };
         /** OrderItemOut */
         OrderItemOut: {
             /**
@@ -1904,6 +1961,19 @@ export interface components {
         Page_CouponUsageOut_: {
             /** Items */
             items: components["schemas"]["CouponUsageOut"][];
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Total */
+            total: number;
+            /** Pages */
+            pages: number;
+        };
+        /** Page[MyReviewOut] */
+        Page_MyReviewOut_: {
+            /** Items */
+            items: components["schemas"]["MyReviewOut"][];
             /** Page */
             page: number;
             /** Page Size */
@@ -2205,6 +2275,15 @@ export interface components {
             revenue: number;
             /** Orders */
             orders: number;
+        };
+        /** ReviewIn */
+        ReviewIn: {
+            /** Rating */
+            rating: number;
+            /** Title */
+            title?: string | null;
+            /** Body */
+            body?: string | null;
         };
         /** ReviewOut */
         ReviewOut: {
@@ -2927,6 +3006,41 @@ export interface operations {
             };
         };
     };
+    create_product_review_api_products__slug__reviews_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_cart_api_cart_get: {
         parameters: {
             query?: never;
@@ -3457,6 +3571,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OrderOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    my_reviews_api_users_reviews_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_MyReviewOut_"];
                 };
             };
             /** @description Validation Error */

@@ -1,7 +1,8 @@
 """Public catalog routes (docs/04 §4)."""
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Response
 
+from app.core.deps import UserDep
 from app.core.pagination import Page, pagination
 from app.db.session import get_db
 from app.routers import API_PREFIX
@@ -9,6 +10,7 @@ from app.schemas.catalog_schemas import (
     CategoryOut,
     ProductDetail,
     ProductListItem,
+    ReviewIn,
     ReviewOut,
 )
 from app.services import catalog_service
@@ -68,6 +70,43 @@ async def get_product(slug: str, db=Depends(get_db)) -> ProductDetail:
 
         raise NotFoundError()
     return detail
+
+
+@router.post("/products/{slug}/reviews", response_model=ReviewOut)
+async def create_product_review(
+    slug: str,
+    payload: ReviewIn,
+    user: UserDep,
+    response: Response,
+    db=Depends(get_db),
+) -> ReviewOut:
+    """Create (201) or update (200) the signed-in user's review for a product."""
+    from sqlalchemy import select
+
+    from app.core.exceptions import NotFoundError
+    from app.models import Product
+
+    product_id = await db.scalar(select(Product.id).where(Product.slug == slug))
+    if not product_id:
+        raise NotFoundError()
+    review, created = await catalog_service.upsert_review(
+        db,
+        user=user,
+        product_id=product_id,
+        rating=payload.rating,
+        title=payload.title,
+        body=payload.body,
+    )
+    response.status_code = 201 if created else 200
+    return ReviewOut(
+        id=review.id,
+        rating=review.rating,
+        title=review.title,
+        body=review.body,
+        user_name=user.full_name,
+        is_verified_purchase=review.is_verified_purchase,
+        created_at=review.created_at,
+    )
 
 
 @router.get("/products/{slug}/reviews", response_model=Page[ReviewOut])

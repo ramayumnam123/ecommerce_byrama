@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { bootstrapSession, useAuthStore } from "@/lib/auth";
@@ -12,6 +12,7 @@ import type { User } from "@/lib/types";
 function SessionBootstrap() {
   const setUser = useAuthStore((s) => s.setUser);
   const setReady = useAuthStore((s) => s.setReady);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     let active = true;
@@ -19,7 +20,16 @@ function SessionBootstrap() {
       const user = (event as CustomEvent<User>).detail;
       if (user) setUser(user);
     };
+    // Refresh failed = session expired: mirror signOut()'s local cleanup so
+    // the UI drops back to signed-out immediately (api.ts already cleared the
+    // token + hint cookie, and redirects on guarded paths).
+    const onExpired = () => {
+      useAuthStore.getState().clear();
+      useCartStore.getState().resetLocal();
+      queryClient.clear();
+    };
     window.addEventListener("auth:refreshed", onRefreshed);
+    window.addEventListener("auth:expired", onExpired);
 
     (async () => {
       await bootstrapSession();
@@ -29,8 +39,9 @@ function SessionBootstrap() {
     return () => {
       active = false;
       window.removeEventListener("auth:refreshed", onRefreshed);
+      window.removeEventListener("auth:expired", onExpired);
     };
-  }, [setReady, setUser]);
+  }, [queryClient, setReady, setUser]);
 
   return null;
 }

@@ -76,6 +76,11 @@ export function refreshAccessToken(): Promise<boolean> {
       } catch {
         setAccessToken(null);
         clearSessionHint();
+        // Session is truly expired (refresh cookie gone/rotated out): let the
+        // app clear client-side auth state (see SessionBootstrap).
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("auth:expired"));
+        }
         if (isGuardedPath() && !window.location.pathname.startsWith("/signin")) {
           const next = encodeURIComponent(
             window.location.pathname + window.location.search,

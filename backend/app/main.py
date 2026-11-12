@@ -34,6 +34,7 @@ from app.routers import (
     health,
     media,
     orders,
+    users,
     webhooks,
 )
 
@@ -66,17 +67,6 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
         docs_url="/docs",
         redoc_url="/redoc",
-    )
-
-    # --- middleware ---
-    app.add_middleware(GZipMiddleware, minimum_size=1024)
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.origins,
-        allow_credentials=True,  # refresh cookie
-        allow_methods=["*"],
-        allow_headers=["*"],
-        expose_headers=["X-Request-ID"],
     )
 
     @app.middleware("http")
@@ -122,6 +112,23 @@ def create_app() -> FastAPI:
                 "Strict-Transport-Security", "max-age=31536000; includeSubDomains"
             )
 
+    # --- middleware ---
+    # Execution order is the registration order REVERSED (last added runs
+    # outermost). The http middleware above is registered before CORS so that
+    # CORSMiddleware wraps everything — preflights skip the rate limiter, and
+    # rate-limited 429 responses still get Access-Control-Allow-Origin.
+    # Otherwise a 429 short-circuit escapes CORS and browsers misreport it as
+    # "No 'Access-Control-Allow-Origin' header present".
+    app.add_middleware(GZipMiddleware, minimum_size=1024)
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.origins,
+        allow_credentials=True,  # refresh cookie
+        allow_methods=["*"],
+        allow_headers=["*"],
+        expose_headers=["X-Request-ID"],
+    )
+
     register_error_handlers(app)
 
     app.include_router(health.router)
@@ -131,6 +138,7 @@ def create_app() -> FastAPI:
     app.include_router(addresses.router)
     app.include_router(checkout.router)
     app.include_router(orders.router)
+    app.include_router(users.router)
     app.include_router(webhooks.router)
     app.include_router(admin.router)
     app.include_router(media.router)

@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ReviewForm } from "@/components/storefront/review-form";
 import { formatDate } from "@/lib/format";
 import { toastApiError } from "@/lib/errors";
 
@@ -35,6 +36,9 @@ export function ReviewSection({
         }),
       ),
     initialData: page === initial.page ? initial : undefined,
+    // Treat the RSC payload as already stale: always refetch on mount so a
+    // just-submitted review shows up even if the server response raced it.
+    initialDataUpdatedAt: 0,
     staleTime: 60_000,
   });
 
@@ -57,6 +61,8 @@ export function ReviewSection({
           </div>
         </div>
       </div>
+
+      <ReviewForm slug={slug} className="mt-6" />
 
       {query.isLoading ? (
         <div className="mt-6 space-y-4">

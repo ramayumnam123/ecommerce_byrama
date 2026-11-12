@@ -35,7 +35,7 @@ async def get_current_user(  # noqa: RUF029
     payload = decode_access_token(token)
     user = await db.scalar(select(User).where(User.id == payload.sub))
     if user is None or not user.is_active:
-        raise AuthError("AUTH_REQUIRED", "Account not found or disabled", 401)
+        raise AuthError("AUTH_REQUIRED", "Account not found or disabled", status_code=401)
     return user
 
 

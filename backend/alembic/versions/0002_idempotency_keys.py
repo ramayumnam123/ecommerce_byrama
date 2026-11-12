@@ -16,7 +16,10 @@ depends_on = None
 
 
 def upgrade() -> None:
-    Base.metadata.tables["idempotency_keys"].create(bind=op.get_bind())
+    # 0001 uses Base.metadata.create_all(), which already creates every current
+    # model table — including idempotency_keys. Guard against the duplicate
+    # create; this stays correct on DBs that predate the model, too.
+    Base.metadata.tables["idempotency_keys"].create(bind=op.get_bind(), checkfirst=True)
 
 
 def downgrade() -> None:

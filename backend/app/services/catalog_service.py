@@ -312,6 +312,56 @@ async def get_product_detail(db, slug: str) -> ProductDetail | None:
 
 
 # ------------------------------------------------------------------ reviews
+async def upsert_review(
+    db,
+    *,
+    user,
+    product_id: uuid.UUID,
+    rating: int,
+    title: str | None,
+    body: str | None,
+) -> tuple[Review, bool]:
+    """Create or update the caller's single review for a product (docs/04 §4).
+
+    One review per (user, product) — the unique constraint in the Review model.
+    `is_verified_purchase` is derived from a DELIVERED order containing any
+    variant of this product; resubmitting refreshes the flag and content.
+    Returns (review, created).
+    """
+    from sqlalchemy import select
+
+    from app.models import Order, OrderItem, OrderStatus
+
+    delivered_item_id = await db.scalar(
+        select(OrderItem.id)
+        .join(Order, Order.id == OrderItem.order_id)
+        .join(ProductVariant, ProductVariant.id == OrderItem.product_variant_id)
+        .where(
+            Order.user_id == user.id,
+            Order.status == OrderStatus.DELIVERED,
+            ProductVariant.product_id == product_id,
+        )
+        .order_by(Order.created_at.desc())
+        .limit(1)
+    )
+
+    review = await db.scalar(
+        select(Review).where(Review.user_id == user.id, Review.product_id == product_id)
+    )
+    created = review is None
+    if review is None:
+        review = Review(user_id=user.id, product_id=product_id)
+        db.add(review)
+    review.rating = rating
+    review.title = title
+    review.body = body
+    review.order_item_id = delivered_item_id
+    review.is_verified_purchase = delivered_item_id is not None
+    review.is_published = True
+    await db.flush()
+    return review, created
+
+
 async def list_product_reviews(
     db, *, product_id: uuid.UUID, page: int = 1, page_size: int = 20
 ) -> tuple[list, int]:
@@ -332,8 +382,7 @@ async def list_product_reviews(
     rows = (
         (
             await db.execute(
-                base.add_columns(User.full_name)
-                .order_by(Review.created_at.desc())
+                base.order_by(Review.created_at.desc())
                 .offset((page - 1) * page_size)
                 .limit(page_size)
             )

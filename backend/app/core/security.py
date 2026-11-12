@@ -56,7 +56,7 @@ def verify_password_or_dummy(plain: str, hashed: str | None) -> bool:
 
 def validate_password_policy(plain: str) -> None:
     if len(plain.encode("utf-8")) > 72:
-        raise AppError("VALIDATION", "Password is too long", 400)
+        raise AppError("VALIDATION", "Password is too long", status_code=400)
     if len(plain) < 8 or not any(c.isupper() for c in plain) or not any(c.isdigit() for c in plain):
         raise AppError(
             "VALIDATION",
@@ -113,15 +113,15 @@ def decode_access_token(token: str) -> TokenPayload:
             audience=AUDIENCE,
         )
     except jwt.ExpiredSignatureError:
-        raise AppError("TOKEN_EXPIRED", "Session expired", 401) from None
+        raise AppError("TOKEN_EXPIRED", "Session expired", status_code=401) from None
     except InvalidIssuerError:
-        raise AppError("AUTH_REQUIRED", "Invalid token issuer", 401) from None
+        raise AppError("AUTH_REQUIRED", "Invalid token issuer", status_code=401) from None
     except InvalidAudienceError:
-        raise AppError("AUTH_REQUIRED", "Invalid token audience", 401) from None
+        raise AppError("AUTH_REQUIRED", "Invalid token audience", status_code=401) from None
     except PyJWTError:
-        raise AppError("AUTH_REQUIRED", "Invalid token", 401) from None
+        raise AppError("AUTH_REQUIRED", "Invalid token", status_code=401) from None
     if claims.get("typ") != "access":
-        raise AppError("AUTH_REQUIRED", "Invalid token type", 401)
+        raise AppError("AUTH_REQUIRED", "Invalid token type", status_code=401)
     return TokenPayload(
         sub=str(claims["sub"]),
         role=str(claims.get("role", "")),
