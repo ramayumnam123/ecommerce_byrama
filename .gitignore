@@ -25,6 +25,7 @@ _server_*.txt
 frontend/node_modules/
 frontend/.next/
 frontend/.vercel/
+backend/.vercel/
 frontend/tsconfig.tsbuildinfo
 frontend/coverage/
 

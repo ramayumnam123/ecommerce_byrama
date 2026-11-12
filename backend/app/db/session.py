@@ -9,9 +9,16 @@ from app.db.base import Base
 
 
 def build_engine(url: str, echo: bool = False) -> AsyncEngine:
+    # Supabase transaction pooler (port 6543, PgBouncer transaction mode) does not
+    # support prepared statements; asyncpg caches them by default, so disable the
+    # cache whenever we detect the pooler port in the DSN.
+    connect_args: dict = {}
+    if ":6543/" in url:
+        connect_args["statement_cache_size"] = 0
     return create_async_engine(
         url,
         echo=echo,
+        connect_args=connect_args,
         pool_pre_ping=True,
         pool_size=5,
         max_overflow=10,
